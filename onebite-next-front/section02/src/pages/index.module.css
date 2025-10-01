@@ -1,11 +1,9 @@
-.h1 {
-  color: red;
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.h2 {
-  color: blue;
-}
-
-#name {
-  color: red;
+.container h3 {
+  margin-bottom: 0px;
 }
