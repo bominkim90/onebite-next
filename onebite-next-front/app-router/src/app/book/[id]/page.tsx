@@ -1,10 +1,14 @@
 import { notFound } from "next/navigation";
 import style from "./page.module.css";
+import { ReviewData } from "@/types";
+import ReviewItem from "@/components/review-item";
+import { ReviewEditor } from "@/components/review-editor";
+import { cache } from "react";
 
+/* generateStaticParams 함수 */
 // generateStaticParams 함수로 return 한 값 이외의 url 파라미터 경로로 진입 시
 // 404 페이지로 보내버림
 // export const dynamicParams = false;
-
 // url 파라미터를 가져다 쓰는 이러한 동적 페이지를
 // 빌드 단계에서 정적페이지로 미리 만들고 캐싱시키고 싶다면 (풀라우트캐시)
 // generateStaticParams 함수를 이용할 수 있다
@@ -12,16 +16,11 @@ export function generateStaticParams() {
   return [{ id: "1" }, { id: "2" }, { id: "3" }];
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-
+async function BookDetail({ bookId }: { bookId: string }) {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_SERVER_URL}/book/${id}`
+    `${process.env.NEXT_PUBLIC_API_SERVER_URL}/book/${bookId}`
   );
+
   if (!response.ok) {
     if (response.status === 404) {
       notFound(); // "next/navigation"의 내장함수 이용 => 자동으로 404 페이지로 이동
@@ -33,7 +32,7 @@ export default async function Page({
   const { title, subTitle, description, author, publisher, coverImgUrl } = book;
 
   return (
-    <div className={style.container}>
+    <section>
       <div
         className={style.cover_img_container}
         style={{ backgroundImage: `url('${coverImgUrl}')` }}
@@ -46,6 +45,45 @@ export default async function Page({
         {author} | {publisher}
       </div>
       <div className={style.description}>{description}</div>
+    </section>
+  );
+}
+
+/* '서버 액션' 
+form 태그를 이용하여 자동으로 api 기능을 대체할 수 있음 */
+
+async function ReviewList({ bookId }: { bookId: string }) {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_SERVER_URL}/review/book/${bookId}`,
+    { next: { tags: [`review-${bookId}`] } }
+  );
+  if (!response.ok) {
+    // return <div>리뷰 목록을 불러오는데에 실패하였습니다.</div>;
+    throw new Error(`Review fetch failed : ${response.statusText}`);
+  }
+  const reviews: ReviewData[] = await response.json();
+
+  return (
+    <section>
+      {reviews.map((review, idx) => (
+        <ReviewItem key={`review-item-${review.id}`} {...review} />
+      ))}
+    </section>
+  );
+}
+
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: bookId } = await params;
+
+  return (
+    <div className={style.container}>
+      <BookDetail bookId={bookId} />
+      <ReviewEditor bookId={bookId} />
+      <ReviewList bookId={bookId} />
     </div>
   );
 }
