@@ -1,9 +1,38 @@
 import { notFound } from "next/navigation";
 import style from "./page.module.css";
-import { ReviewData } from "@/types";
+import { BookData, ReviewData } from "@/types";
 import ReviewItem from "@/components/review-item";
 import { ReviewEditor } from "@/components/review-editor";
 import Image from "next/image";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  console.log("id : ", id);
+  // Request Memoization : 하나의 페이지를 렌더링하는 도중 중복된 API 호출을 방지
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_SERVER_URL}/book/${id}`,
+    { cache: "force-cache" }
+  );
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  const book: BookData = await response.json();
+
+  return {
+    title: `${book.title} - 한입북스`,
+    description: `${book.description}`,
+    openGraph: {
+      title: `${book.title} - 한입북스`,
+      description: `${book.description}`,
+      images: ["/thumbnail.png"],
+    },
+  };
+}
 
 /* generateStaticParams 함수 */
 // generateStaticParams 함수로 return 한 값 이외의 url 파라미터 경로로 진입 시

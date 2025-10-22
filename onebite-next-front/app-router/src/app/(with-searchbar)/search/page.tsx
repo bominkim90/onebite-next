@@ -2,7 +2,31 @@ import BookItem from "@/components/book-item";
 import BookListSkeleton from "@/components/skeleton/book-list-skeleton";
 import { BookData } from "@/types";
 import { delay } from "@/util/delay";
+import { Metadata } from "next";
 import { Suspense } from "react";
+
+// export const metadata: Metadata = {
+//   title: "한입 북스 : 검색어(동적인 값)", // 여기선 동적인 값 불러올 수 없음
+// };
+
+// 현재 페이지 메타 데이터를 동적으로 생성하는 역할
+// client 컴포넌트에서 props 로 쿼리스트링을 받듯이, 이 함수에서도 받을 수 있다.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}): Promise<Metadata> {
+  const { q } = await searchParams;
+  return {
+    title: `${q} : 한입 북스 검색`,
+    description: `${q}의 검색 결과입니다.`,
+    openGraph: {
+      title: `${q} : 한입 북스 검색`,
+      description: `${q}의 검색 결과입니다.`,
+      images: ["/thumbnail.png"],
+    },
+  };
+}
 
 async function SearchResult({ q }: { q: string }) {
   await delay(1500);
