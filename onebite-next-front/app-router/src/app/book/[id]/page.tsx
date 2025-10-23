@@ -41,8 +41,18 @@ export async function generateMetadata({
 // url 파라미터를 가져다 쓰는 이러한 동적 페이지를
 // 빌드 단계에서 정적페이지로 미리 만들고 캐싱시키고 싶다면 (풀라우트캐시)
 // generateStaticParams 함수를 이용할 수 있다
-export function generateStaticParams() {
-  return [{ id: "1" }, { id: "2" }, { id: "3" }];
+export async function generateStaticParams() {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_SERVER_URL}/book`
+  );
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+  const books: BookData[] = await response.json();
+
+  return books.map((book) => ({
+    id: book.id.toString(),
+  }));
 }
 
 async function BookDetail({ bookId }: { bookId: string }) {

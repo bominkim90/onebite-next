@@ -1,6 +1,5 @@
 "use server";
 
-import { delay } from "@/util/delay";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function createReviewAction(state: any, formData: FormData) {
@@ -19,8 +18,6 @@ export async function createReviewAction(state: any, formData: FormData) {
 
   // 리뷰 등록 api 호출
   try {
-    await delay(3000);
-
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_SERVER_URL}/review/1`,
       {
